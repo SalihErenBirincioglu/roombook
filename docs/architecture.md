@@ -1,25 +1,36 @@
 # Architecture
 
-> **Template — filled during bootstrap.** Describe the architecture you *decided on*, not an
-> aspiration. Agents read this file before planning; vague answers here become vague code.
-
 ## System overview
-<!-- 3–6 sentences: what the system is, its architectural style (monolith / modular monolith /
-services / etc.), and the one-line reason for that choice (link the ADR). -->
+roombook is a single-org internal tool for booking meeting/conference rooms. It ships as one
+deployable Next.js (App Router) application — no separate frontend/backend services. Internally
+it is a **layered monolith**: route/API layer → service layer → data-access layer (Prisma) →
+PostgreSQL. Layers, not domain modules, are the structuring device — the domain (rooms, bookings,
+users) is small enough that layering gives sufficient separation without module-boundary overhead.
 
 ## Modules / components and ownership
-<!-- One row per module: single responsibility + the data it owns (conceptual, not table-level). -->
 
-| Module | Single responsibility | Owns |
+| Layer | Single responsibility | Owns |
 |---|---|---|
-| | | |
+| Route/API layer (Next.js route handlers, server actions, pages) | HTTP/session handling, input validation (Zod), mapping domain errors → HTTP responses | No persisted state |
+| Service layer (`lib/services/*`) | Business rules: booking conflict detection, role authorization, room lifecycle | Business logic only — no SQL, no `NextRequest` |
+| Data-access layer (Prisma client + schema) | Persistence | PostgreSQL schema: `User`, `Room`, `Booking` |
 
 ## Communication rules
-<!-- When is a direct call allowed, when an event/message, when is it forbidden? -->
+- Route/API layer may only call service-layer functions — never the Prisma client directly.
+- Service-layer functions never read `NextRequest`/`NextResponse` or format HTTP status codes —
+  they throw typed domain errors and return plain data; the route layer maps errors to responses.
+- All client (React component) → server communication goes through Next.js route handlers or
+  server actions — no direct database access from client code (enforced by the Next.js
+  client/server boundary itself).
 
 ## Forbidden dependencies (make them testable)
-<!-- Concrete prohibitions an architecture test could assert, e.g.
-"Module A never accesses Module B's internal types or storage — only its public interface." -->
+- Route handlers, pages, and React components never `import` the Prisma client — only files under
+  `lib/services/` may import it.
+- Service-layer files never import anything from `next/server` or format HTTP responses.
 
 ## Deliberately out of scope
-<!-- Conscious non-goals for the current version. -->
+- Multi-tenancy (single organization only).
+- Payments/billing.
+- Native mobile app (web-only, responsive).
+- Recurring bookings, calendar/email sync, and approval workflows for conflicting requests —
+  conflicts are rejected outright, not queued for admin approval (see `docs/domain.md` BR-1).

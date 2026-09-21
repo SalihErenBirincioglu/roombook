@@ -1,13 +1,14 @@
 # AGENTS.md — Project Rules
 
-> **STATUS: NOT CONFIGURED.** This workspace has not been adapted to a project yet.
-> The only correct first action is the bootstrap workflow (`workflows/bootstrap.md`).
-> Until bootstrap completes and rewrites this file, do not write application code.
+## Project
+**roombook** — internal web app for booking meeting/conference rooms, single org. Employees
+manage their own Bookings; Admins manage Rooms and any Booking. Core rule: a Room has at most one
+active Booking per time range, first to book wins (`docs/domain.md` BR-1). Stack: Next.js +
+TypeScript, layered monolith (route → service → Prisma/PostgreSQL), Auth.js sessions, Vitest.
 
 ## Operating mode
-
-**Mode: unset** — bootstrap sets this to `lite` or `strict` (see `workflows/README.md`).
-Every workflow honors the gates of the current mode.
+**Mode: strict** — Intent→Clarify→Spec→**[GATE]**→Plan→**[GATE]**→Build→Independent Review→
+**[GATE: triage]**→Verify→**[GATE: ship]**. See `workflows/README.md`.
 
 ## Invariant rules (these survive bootstrap — never delete or weaken them)
 

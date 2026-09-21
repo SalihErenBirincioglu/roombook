@@ -8,10 +8,16 @@
 - The whole suite runs inside `scripts/check` — one command, everywhere.
 
 ## Frameworks & layout
-<!-- Test framework(s), where tests live, naming pattern. -->
+Vitest for unit/integration tests. Tests live next to the code they cover as `*.test.ts`, focused
+on the service layer (business rules, conflict detection, authorization). No browser-level E2E for
+v1 — explicit decision; revisit before launch if broader coverage is wanted (record as an ADR if
+reversed).
 
 ## What must be tested
-<!-- e.g. every business rule (BR-n), every boundary/forbidden dependency, critical flows E2E/smoke. -->
+- Every business rule in `docs/domain.md` (BR-1…BR-5) has at least one service-layer test.
+- Every admin-only service function has a test asserting non-admins are rejected (default-deny).
+- Forbidden dependencies (route layer never imports Prisma directly) are checked in review, not
+  automated, since there is no E2E/lint rule for it yet.
 
 ## Protected-tests rule
 Weakening asserts, deleting, or skipping tests to reach green is forbidden. A red test triggers

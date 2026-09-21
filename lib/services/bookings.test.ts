@@ -11,6 +11,7 @@ function hoursFromNow(hours: number): Date {
 let room: Room;
 let owner: User;
 let otherUser: User;
+let adminUser: User;
 
 beforeEach(async () => {
   await prisma.booking.deleteMany();
@@ -20,6 +21,7 @@ beforeEach(async () => {
   room = await prisma.room.create({ data: { name: "Falcon", capacity: 4 } });
   owner = await prisma.user.create({ data: { name: "Alice", role: "EMPLOYEE" } });
   otherUser = await prisma.user.create({ data: { name: "Bob", role: "EMPLOYEE" } });
+  adminUser = await prisma.user.create({ data: { name: "Carol", role: "ADMIN" } });
 });
 
 describe("listBookingsForRoom", () => {
@@ -166,6 +168,19 @@ describe("cancelBooking", () => {
     });
 
     await expect(cancelBooking(booking.id, otherUser.id)).rejects.toBeInstanceOf(
+      UnauthorizedError,
+    );
+    const stillActive = await prisma.booking.findUnique({ where: { id: booking.id } });
+    expect(stillActive?.status).toBe("ACTIVE");
+  });
+
+  it("rejects cancellation by an Admin who is not the owner (AC-11, BR-3 deferred)", async () => {
+    const booking = await createBooking(room.id, owner.id, {
+      startTime: hoursFromNow(2),
+      endTime: hoursFromNow(4),
+    });
+
+    await expect(cancelBooking(booking.id, adminUser.id)).rejects.toBeInstanceOf(
       UnauthorizedError,
     );
     const stillActive = await prisma.booking.findUnique({ where: { id: booking.id } });

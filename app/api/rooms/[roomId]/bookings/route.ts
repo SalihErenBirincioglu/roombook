@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ValidationError } from "@/lib/errors";
 import { getActingUser } from "@/lib/http/acting-user";
-import { errorResponse } from "@/lib/http/error-response";
+import { errorResponse, parseJsonBody } from "@/lib/http/error-response";
 import { createBooking, listBookingsForRoom } from "@/lib/services/bookings";
 
 function parseRangeParam(value: string | null, field: string): Date {
@@ -39,7 +39,7 @@ export async function POST(
   try {
     const { roomId } = await params;
     const actingUser = await getActingUser(request);
-    const body = await request.json();
+    const body = await parseJsonBody(request);
     const booking = await createBooking(roomId, actingUser.id, body);
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {

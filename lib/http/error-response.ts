@@ -1,5 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from "../errors";
+
+export async function parseJsonBody(request: NextRequest): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    throw new ValidationError("Request body must be valid JSON");
+  }
+}
 
 export function errorResponse(error: unknown): NextResponse {
   if (error instanceof ValidationError) {

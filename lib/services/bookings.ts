@@ -3,6 +3,7 @@ import { BookingStatus } from "@prisma/client";
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from "../errors";
 import { prisma } from "../prisma";
 import { createBookingSchema } from "../validation";
+import { withRoomLock } from "./room-lock";
 
 function overlapsRange(rangeStart: Date, rangeEnd: Date) {
   return {
@@ -50,27 +51,22 @@ export async function createBooking(
     throw new NotFoundError("Room not found");
   }
 
-  const conflict = await prisma.booking.findFirst({
-    where: {
-      roomId,
-      status: BookingStatus.ACTIVE,
-      ...overlapsRange(startTime, endTime),
-    },
-  });
-  if (conflict) {
-    throw new ConflictError("Booking overlaps an existing active booking for this room");
-  }
-
-  try {
-    return await prisma.booking.create({
-      data: { roomId, userId, startTime, endTime },
+  return withRoomLock(roomId, async () => {
+    const conflict = await prisma.booking.findFirst({
+      where: {
+        roomId,
+        status: BookingStatus.ACTIVE,
+        ...overlapsRange(startTime, endTime),
+      },
     });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("23P01")) {
+    if (conflict) {
       throw new ConflictError("Booking overlaps an existing active booking for this room");
     }
-    throw error;
-  }
+
+    return prisma.booking.create({
+      data: { roomId, userId, startTime, endTime },
+    });
+  });
 }
 
 export async function cancelBooking(bookingId: string, userId: string): Promise<Booking> {

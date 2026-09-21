@@ -2,7 +2,7 @@
 
 ## Language & framework versions
 - TypeScript (`strict: true`), Node.js LTS, Next.js (App Router), React.
-- PostgreSQL + Prisma ORM (schema-first, migrations checked in).
+- SQLite + Prisma ORM (schema-first, migrations checked in).
 - Auth.js (NextAuth) for authentication/session management.
 - Zod for request/input validation at the API boundary.
 - Vitest for tests.

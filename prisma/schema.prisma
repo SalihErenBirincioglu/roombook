@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 generator client {
@@ -34,8 +34,8 @@ model Booking {
   id        String        @id @default(uuid())
   roomId    String
   userId    String
-  startTime DateTime      @db.Timestamptz
-  endTime   DateTime      @db.Timestamptz
+  startTime DateTime
+  endTime   DateTime
   status    BookingStatus @default(ACTIVE)
   room      Room          @relation(fields: [roomId], references: [id])
   user      User          @relation(fields: [userId], references: [id])

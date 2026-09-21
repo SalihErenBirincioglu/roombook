@@ -24,3 +24,13 @@ next-env.d.ts
 
 # Test/coverage
 coverage/
+
+# SQLite local database files
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-wal
+prisma/*.db-shm
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

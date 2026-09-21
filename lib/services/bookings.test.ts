@@ -84,7 +84,7 @@ describe("createBooking", () => {
     expect(await prisma.booking.count()).toBe(1);
   });
 
-  it("rejects overlapping concurrent bookings, keeping exactly one active (AC-6, DB exclusion constraint)", async () => {
+  it("rejects overlapping concurrent bookings, keeping exactly one active (AC-6, in-process room lock)", async () => {
     const attempt = () =>
       createBooking(room.id, owner.id, {
         startTime: hoursFromNow(2),

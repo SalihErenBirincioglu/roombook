@@ -1,0 +1,42 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN
+}
+
+enum BookingStatus {
+  ACTIVE
+  CANCELLED
+}
+
+model User {
+  id       String    @id @default(uuid())
+  name     String
+  role     Role
+  bookings Booking[]
+}
+
+model Room {
+  id       String    @id @default(uuid())
+  name     String
+  capacity Int
+  bookings Booking[]
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  roomId    String
+  userId    String
+  startTime DateTime      @db.Timestamptz
+  endTime   DateTime      @db.Timestamptz
+  status    BookingStatus @default(ACTIVE)
+  room      Room          @relation(fields: [roomId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+}
